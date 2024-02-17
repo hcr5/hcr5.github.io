@@ -28,12 +28,18 @@
                 transform: rotate(360deg);
             }
         }
+
+        #result {
+            display: none;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
 
 <input type="text" id="username" placeholder="Enter Username">
 <button onclick="loadFollowers()">Load Followers</button>
+<button onclick="stopLoading()">Stop</button>
 <div id="loading">
     <div class="spinner"></div>
 </div>
@@ -41,13 +47,17 @@
 
 <script src="https://code.jquery.com/jquery-latest.min.js"></script>
 <script>
+var loading = false;
+
 function loadFollowers() {
+    if (loading) return; // Prevent multiple requests
+    loading = true;
+
     var username = document.getElementById("username").value;
     var page = 1;
 
     // Show loading spinner
     $('#loading').show();
-    $('#result').empty(); // Clean up previous results
 
     function load() {
         $.get("https://scratch.mit.edu/users/" + username + "/followers/?page=" + page, loaded);
@@ -70,10 +80,17 @@ function loadFollowers() {
         } else {
             // Hide loading spinner when all followers are loaded
             $('#loading').hide();
+            $('#result').show();
+            loading = false;
         }
     }
 
     load();
+}
+
+function stopLoading() {
+    loading = false;
+    $('#loading').hide();
 }
 </script>
 
