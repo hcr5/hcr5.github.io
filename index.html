@@ -1,92 +1,42 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f0f0f0;
-        }
+<script type="text/javascript" src="http://code.jquery.com/jquery-latest.min.js"></script>
+<script>
+var page = 1;
 
-        #container {
-            width: 400px;
-            margin: 50px auto;
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
+function fetchFollowers() {
+    var username = document.getElementById("username").value.trim();
+    if (username === "") {
+        alert("Please enter a username.");
+        return;
+    }
 
-        input[type="text"],
-        button {
-            padding: 10px;
-            margin-bottom: 10px;
-            width: calc(100% - 20px);
-            box-sizing: border-box;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
+    load(username);
+}
 
-        button {
-            background-color: #4CAF50;
-            color: white;
-            cursor: pointer;
-        }
+function load(username) {
+    $.get("http://scratch.mit.edu/users/" + username + "/followers/?page=" + page, loaded);
+}
 
-        button:hover {
-            background-color: #45a049;
-        }
+function loaded(data) {
+    var $dom = $(data);
+    var $users = $dom.find('span.title').children();
+    var $out = $('#result');
 
-        #result {
-            margin-top: 20px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            background-color: #f9f9f9;
-        }
-    </style>
-    <script>
-        function fetchFollowers() {
-            var username = document.getElementById("username").value.trim();
-            if (username === "") {
-                alert("Please enter a username.");
-                return;
-            }
+    for (var i = 0; i < $users.length; i++) {
+        var user = $users[i].text.trim();
+        $out.prepend(user + '<br>');
+    }
 
-            var page = 1;
-            var resultDiv = document.getElementById('result');
-            resultDiv.innerHTML = ''; // Clear previous results
-
-            function load() {
-                fetch("https://cors-anywhere.herokuapp.com/http://scratch.mit.edu/users/" + username + "/followers/?page=" + page)
-                    .then(response => response.text())
-                    .then(data => {
-                        var tempDiv = document.createElement('div');
-                        tempDiv.innerHTML = data;
-
-                        var users = tempDiv.querySelectorAll('span.title a');
-
-                        users.forEach(user => {
-                            resultDiv.innerHTML += user.textContent.trim() + '<br>';
-                        });
-
-                        page++;
-                        load(); // Load next page recursively
-                    })
-                    .catch(error => console.error('Error fetching followers:', error));
-            }
-
-            load();
-        }
-    </script>
+    page++;
+    load(username);
+};
+</script>
 </head>
 <body>
-    <div id="container">
-        <h2 style="text-align: center;">Fetch Followers</h2>
-        <input type="text" id="username" placeholder="Enter username">
-        <button onclick="fetchFollowers()">Fetch Followers</button>
-        <div id='result'></div>
-    </div>
+    <input type="text" id="username" placeholder="Enter username">
+    <button onclick="fetchFollowers()">Fetch Followers</button>
+    <div id="result"></div>
 </body>
 </html>
