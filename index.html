@@ -1,15 +1,68 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scratch Followers</title>
-    <script src="https://code.jquery.com/jquery-latest.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            text-align: center;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        input[type="text"] {
+            padding: 8px;
+            margin-right: 10px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+            width: 200px;
+            box-sizing: border-box;
+        }
+
+        button {
+            padding: 8px 16px;
+            background-color: #4caf50;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #result {
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
 
-<input type="text" id="username" placeholder="Enter Username">
-<button onclick="loadFollowers()">Load Followers</button>
-<div id="result"></div>
+<div class="container">
+    <h2>Scratch Followers</h2>
+    <input type="text" id="username" placeholder="Enter Username">
+    <button onclick="loadFollowers()">Load Followers</button>
+    <div id="result"></div>
+</div>
 
+<script src="https://code.jquery.com/jquery-latest.min.js"></script>
 <script>
 function loadFollowers() {
     var username = document.getElementById("username").value;
@@ -23,6 +76,8 @@ function loadFollowers() {
         var $dom = $(data);
         var $users = $dom.find('span.title > a');
         var $out = $('#result');
+
+        $out.empty(); // Clear previous results
 
         for (var i = 0; i < $users.length; i++) {
             var user = $($users[i]).text().trim();
