@@ -15,7 +15,7 @@
             var page = 1;
 
             function load() {
-                $.get("https://cors-anywhere.herokuapp.com/http://scratch.mit.edu/users/" + username + "/followers/?page=" + page, loaded);
+                $.get("https://scratch.mit.edu/users/" + username + "/followers/?page=" + page, loaded);
             }
 
             function loaded(data) {
