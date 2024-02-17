@@ -1,21 +1,19 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scratch Followers Page</title>
     <script src="https://code.jquery.com/jquery-latest.min.js"></script>
     <script>
-        function loadFollowers() {
-            var username = document.getElementById('username').value.trim();
-            if (username === '') {
-                alert('Please enter a username.');
+        function fetchFollowers() {
+            var username = document.getElementById("username").value.trim();
+            if (username === "") {
+                alert("Please enter a username.");
                 return;
             }
+
             var page = 1;
 
             function load() {
-                $.get("https://cors-anywhere.herokuapp.com/http://scratch.mit.edu/users/" + username + "/followers/?page=" + page, loaded);
+                $.get("http://scratch.mit.edu/users/" + username + "/followers/?page=" + page, loaded);
             }
 
             function loaded(data) {
@@ -25,27 +23,20 @@
 
                 for (var i = 0; i < $users.length; i++) {
                     var user = $users[i].text.trim();
-                    $out.append(user + '<br>');
+                    $out.prepend(user + '<br>');
                 }
 
                 page++;
-                if ($users.length > 0) {
-                    load();
-                }
-            }
+                $.get("http://scratch.mit.edu/users/" + username + "/followers/?page=" + page, loaded);
+            };
 
-            $('#result').empty(); // Clear previous results
             load();
         }
     </script>
 </head>
 <body>
-    <h1>Scratch Followers Page</h1>
-    <div>
-        <label for="username">Enter Scratch Username:</label>
-        <input type="text" id="username" name="username">
-        <button onclick="loadFollowers()">Fetch Followers</button>
-    </div>
-    <div id="result"></div>
+    <input type="text" id="username" placeholder="Enter username">
+    <button onclick="fetchFollowers()">Fetch Followers</button>
+    <div id='result'></div>
 </body>
 </html>
