@@ -1,19 +1,53 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scratch Followers</title>
-    <script src="https://code.jquery.com/jquery-latest.min.js"></script>
+    <style>
+        #loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .spinner {
+            animation: spin 1s linear infinite;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #333;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
 </head>
 <body>
 
 <input type="text" id="username" placeholder="Enter Username">
 <button onclick="loadFollowers()">Load Followers</button>
+<div id="loading">
+    <div class="spinner"></div>
+</div>
 <div id="result"></div>
 
+<script src="https://code.jquery.com/jquery-latest.min.js"></script>
 <script>
 function loadFollowers() {
     var username = document.getElementById("username").value;
     var page = 1;
+
+    // Show loading spinner
+    $('#loading').show();
+    $('#result').empty(); // Clean up previous results
 
     function load() {
         $.get("https://scratch.mit.edu/users/" + username + "/followers/?page=" + page, loaded);
@@ -30,7 +64,13 @@ function loadFollowers() {
         }
 
         page++;
-        $.get("https://scratch.mit.edu/users/" + username + "/followers/?page=" + page, loaded);
+        if ($users.length > 0) {
+            // Load next page
+            load();
+        } else {
+            // Hide loading spinner when all followers are loaded
+            $('#loading').hide();
+        }
     }
 
     load();
