@@ -1,35 +1,19 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scratch Followers</title>
-    <style>
-        #result {
-            display: none;
-            margin-top: 20px;
-        }
-    </style>
+    <script src="https://code.jquery.com/jquery-latest.min.js"></script>
 </head>
 <body>
 
 <input type="text" id="username" placeholder="Enter Username">
 <button onclick="loadFollowers()">Load Followers</button>
-<button onclick="stopLoading()">Stop</button>
 <div id="result"></div>
 
-<script src="https://code.jquery.com/jquery-latest.min.js"></script>
 <script>
-var loading = false;
-
 function loadFollowers() {
-    if (loading) return; // Prevent multiple requests
-    loading = true;
-
     var username = document.getElementById("username").value;
     var page = 1;
-
-    $('#result').empty(); // Clear previous results
 
     function load() {
         $.get("https://scratch.mit.edu/users/" + username + "/followers/?page=" + page, loaded);
@@ -46,21 +30,10 @@ function loadFollowers() {
         }
 
         page++;
-        if ($users.length > 0) {
-            // Load next page
-            load();
-        } else {
-            // Show the result container when all followers are loaded
-            $('#result').show();
-            loading = false;
-        }
+        $.get("https://scratch.mit.edu/users/" + username + "/followers/?page=" + page, loaded);
     }
 
     load();
-}
-
-function stopLoading() {
-    loading = false;
 }
 </script>
 
