@@ -5,30 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scratch Followers</title>
     <style>
-        #loading {
-            display: none;
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        .spinner {
-            animation: spin 1s linear infinite;
-            border: 4px solid rgba(0, 0, 0, 0.1);
-            border-left-color: #333;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
         #result {
             display: none;
             margin-top: 20px;
@@ -40,9 +16,6 @@
 <input type="text" id="username" placeholder="Enter Username">
 <button onclick="loadFollowers()">Load Followers</button>
 <button onclick="stopLoading()">Stop</button>
-<div id="loading">
-    <div class="spinner"></div>
-</div>
 <div id="result"></div>
 
 <script src="https://code.jquery.com/jquery-latest.min.js"></script>
@@ -56,8 +29,7 @@ function loadFollowers() {
     var username = document.getElementById("username").value;
     var page = 1;
 
-    // Show loading spinner
-    $('#loading').show();
+    $('#result').empty(); // Clear previous results
 
     function load() {
         $.get("https://scratch.mit.edu/users/" + username + "/followers/?page=" + page, loaded);
@@ -78,9 +50,8 @@ function loadFollowers() {
             // Load next page
             load();
         } else {
-            // Hide loading spinner when all followers are loaded
-            $('#loading').hide();
-            $('#result').show(); // Show the result container
+            // Show the result container when all followers are loaded
+            $('#result').show();
             loading = false;
         }
     }
@@ -90,7 +61,6 @@ function loadFollowers() {
 
 function stopLoading() {
     loading = false;
-    $('#loading').hide();
 }
 </script>
 
