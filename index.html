@@ -118,6 +118,13 @@ function stopLoading() {
     stopLoadingFlag = true; // Set the flag to stop loading
 }
 
+$('#username').on('input', function() {
+    if (loading) {
+        stopLoading();
+        $('#result').empty();
+    }
+});
+
 </script>
 
 </body>
