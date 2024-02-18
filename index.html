@@ -15,6 +15,7 @@
 <script>
 var loading = false; // Flag to track if loading is in progress
 var stopLoadingFlag = false; // Flag to track if the loading process should be stopped
+var currentXHR = null; // Variable to hold the current XMLHttpRequest
 
 function loadFollowers() {
     var username = $('#username').val(); // Utilize jQuery to get the input value
@@ -25,9 +26,14 @@ function loadFollowers() {
     // Clear old followers before loading new ones
     $('#result').empty();
 
+    // Abort any ongoing AJAX request
+    if (currentXHR !== null) {
+        currentXHR.abort();
+    }
+
     function load() {
         if (!stopLoadingFlag) { // Check if loading process should continue
-            $.get("https://scratch.mit.edu/users/" + username + "/followers/?page=" + page, loaded);
+            currentXHR = $.get("https://scratch.mit.edu/users/" + username + "/followers/?page=" + page, loaded);
         }
     }
 
@@ -45,6 +51,7 @@ function loadFollowers() {
             load(); // Call load function recursively
         } else {
             loading = false; // Set loading flag to false when loading stops
+            currentXHR = null; // Reset currentXHR
         }
     }
 
@@ -60,9 +67,14 @@ function loadFollowing() {
     // Clear old following before loading new ones
     $('#result').empty();
 
+    // Abort any ongoing AJAX request
+    if (currentXHR !== null) {
+        currentXHR.abort();
+    }
+
     function load() {
         if (!stopLoadingFlag) { // Check if loading process should continue
-            $.get("https://scratch.mit.edu/users/" + username + "/following/?page=" + page, loaded);
+            currentXHR = $.get("https://scratch.mit.edu/users/" + username + "/following/?page=" + page, loaded);
         }
     }
 
@@ -80,6 +92,7 @@ function loadFollowing() {
             load(); // Call load function recursively
         } else {
             loading = false; // Set loading flag to false when loading stops
+            currentXHR = null; // Reset currentXHR
         }
     }
 
@@ -88,6 +101,8 @@ function loadFollowing() {
 
 function stopLoading() {
     stopLoadingFlag = true; // Set the flag to stop loading
+    // Clear old followers or following
+    $('#result').empty();
 }
 
 </script>
