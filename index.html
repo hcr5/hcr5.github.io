@@ -10,14 +10,10 @@
     var stopLoadingFlag = false; // Flag to track if the loading process should be stopped
 
     function loadFollowers() {
+        refreshPage();
         var username = $('#username').val(); // Utilize jQuery to get the input value
         var page = 1;
         loading = true; // Set loading flag to true
-
-        // Clear old followers before loading new ones
-        $('#result').empty();
-
-        stopLoadingFlag = false; // Reset the stop loading flag
 
         function load() {
             if (!stopLoadingFlag) { // Check if loading process should continue
@@ -46,14 +42,10 @@
     }
 
     function loadFollowing() {
+        refreshPage();
         var username = $('#username').val(); // Utilize jQuery to get the input value
         var page = 1;
         loading = true; // Set loading flag to true
-
-        // Clear old following before loading new ones
-        $('#result').empty();
-
-        stopLoadingFlag = false; // Reset the stop loading flag
 
         function load() {
             if (!stopLoadingFlag) { // Check if loading process should continue
@@ -83,5 +75,9 @@
 
     function stopLoading() {
         stopLoadingFlag = true; // Set the flag to stop loading
+    }
+
+    function refreshPage() {
+        $('#result').empty(); // Clear the result div
     }
 </script>
