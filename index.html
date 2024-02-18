@@ -8,6 +8,7 @@
 
 <input type="text" id="username" placeholder="Enter Username">
 <button onclick="loadFollowers()">Load Followers</button>
+<button onclick="loadFollowing()">Load Following</button>
 <button onclick="stopLoading()">Stop</button>
 <div id="result"></div>
 
@@ -26,6 +27,40 @@ function loadFollowers() {
     function load() {
         if (!stopLoadingFlag) { // Check if loading process should continue
             $.get("https://scratch.mit.edu/users/" + username + "/followers/?page=" + page, loaded);
+        }
+    }
+
+    function loaded(data) {
+        var users = $(data).find('span.title > a'); // Use jQuery to find users directly
+        var $out = $('#result');
+
+        users.each(function() {
+            var user = $(this).text().trim(); // Use $(this) to reference the current user
+            $out.append(user + '<br>');
+        });
+
+        page++;
+        if (!stopLoadingFlag) { // Check if loading process should continue
+            load(); // Call load function recursively
+        } else {
+            loading = false; // Set loading flag to false when loading stops
+        }
+    }
+
+    load();
+}
+
+function loadFollowing() {
+    var username = $('#username').val(); // Utilize jQuery to get the input value
+    var page = 1;
+    loading = true; // Set loading flag to true
+
+    // Clear old followers before loading new ones
+    $('#result').empty();
+
+    function load() {
+        if (!stopLoadingFlag) { // Check if loading process should continue
+            $.get("https://scratch.mit.edu/users/" + username + "/following/?page=" + page, loaded);
         }
     }
 
