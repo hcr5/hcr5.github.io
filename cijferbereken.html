@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bereken je cijfer</title>
+</head>
+<body>
+    <h2>Bereken je cijfer</h2>
+    <label for="cijfer">Wat sta je nu:</label>
+    <input type="number" id="cijfer" step="0.01"><br><br>
+
+    <label for="dingen">Hoe vaak tellen al je cijfers in totaal mee:</label>
+    <input type="number" id="dingen"><br><br>
+
+    <label for="halen">Wat ga je halen:</label>
+    <input type="number" id="halen" step="0.01"><br><br>
+
+    <label for="meetel">Hoe vaak telt ie mee:</label>
+    <input type="number" id="meetel"><br><br>
+
+    <button onclick="berekenCijfer()">Bereken</button>
+
+    <h3>Resultaat:</h3>
+    <p id="resultaat"></p>
+
+    <script>
+        function berekenCijfer() {
+            var cijfer = parseFloat(document.getElementById('cijfer').value);
+            var dingen = parseInt(document.getElementById('dingen').value);
+            var halen = parseFloat(document.getElementById('halen').value);
+            var meetel = parseInt(document.getElementById('meetel').value);
+
+            var sta = (cijfer * dingen + halen * meetel) / (dingen + meetel);
+            var afgerondSta = sta.toFixed(1);
+
+            document.getElementById('resultaat').textContent = afgerondSta;
+        }
+    </script>
+</body>
+</html>
