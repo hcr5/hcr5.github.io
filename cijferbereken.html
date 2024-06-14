@@ -62,7 +62,11 @@
             var sta = (cijfer * dingen + halen * meetel) / (dingen + meetel);
             var afgerondSta = sta.toFixed(1);
 
-            document.getElementById('resultaat').textContent = afgerondSta;
+            if (isNaN(sta)) {
+                document.getElementById('resultaat').textContent = "Ongeldige invoer";
+            } else {
+                document.getElementById('resultaat').textContent = afgerondSta;
+            }
         }
     </script>
 </body>
