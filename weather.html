@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Forecast</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 10px;
+            background-color: #ffffff;
+        }
+        h1, h2 {
+            text-align: center;
+            font-size: 1.5rem;
+            margin: 10px 0;
+        }
+        form {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .error {
+            color: red;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            display: none;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+            font-size: 14px;
+        }
+        th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .loader {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <h1>Weather Forecast</h1>
+    <form id="location-form">
+        <label for="location">Enter Location:</label>
+        <input type="text" id="location" name="location" required>
+        <button type="submit">Get Weather</button>
+    </form>
+    <div id="error-message" class="error"></div>
+    <h2 id="nameo"></h2>
+    <div id="loader" class="loader" style="display: none;"></div>
+    <table id="weather-table">
+        <thead>
+            <tr>
+                <th>Time</th>
+                <th>Temperature (°C)</th>
+                <th>Pressure (hPa)</th>
+                <th>Humidity (%)</th>
+                <th>Wind Speed (m/s)</th>
+                <th>Wind Direction (°)</th>
+                <th>Precipitation (mm)</th>
+                <th>Summary</th>
+            </tr>
+        </thead>
+        <tbody id="weather-data"></tbody>
+    </table>
+
+    <script>
+        const weatherApiUrl = 'https://api.met.no/weatherapi/locationforecast/2.0/compact';
+        const geocodingApiUrl = 'https://nominatim.openstreetmap.org/search';
+
+        function formatDate(isoString) {
+            const date = new Date(isoString);
+            return date.toLocaleString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        }
+
+        function getCoordinates(location) {
+            return fetch(`${geocodingApiUrl}?q=${encodeURIComponent(location)}&format=json&addressdetails=1&limit=1`)
+                .then(response => response.json())
+                .then(data => data.length ? { lat: data[0].lat, lon: data[0].lon, display_name: data[0].display_name } : null);
+        }
+
+        function getWeather(lat, lon) {
+            return fetch(`${weatherApiUrl}?lat=${lat}&lon=${lon}`)
+                .then(response => response.json())
+                .then(data => {
+                    const timeseries = data.properties.timeseries;
+                    const tableBody = document.getElementById('weather-data');
+                    tableBody.innerHTML = '';
+
+                    timeseries.forEach(entry => {
+                        const { time } = entry;
+                        const { air_temperature, air_pressure_at_sea_level, relative_humidity, wind_speed, wind_from_direction } = entry.data.instant.details;
+                        const precipitation = entry.data.next_1_hours ? entry.data.next_1_hours.details.precipitation_amount || 0 : 0;
+                        const summary = entry.data.next_1_hours ? entry.data.next_1_hours.summary.symbol_code : '';
+
+                        tableBody.innerHTML += `
+                            <tr>
+                                <td>${formatDate(time)}</td>
+                                <td>${air_temperature.toFixed(1)}</td>
+                                <td>${air_pressure_at_sea_level.toFixed(1)}</td>
+                                <td>${relative_humidity.toFixed(1)}</td>
+                                <td>${wind_speed.toFixed(1)}</td>
+                                <td>${wind_from_direction.toFixed(1)}</td>
+                                <td>${precipitation}</td>
+                                <td>${summary}</td>
+                            </tr>
+                        `;
+                    });
+                });
+        }
+
+        document.getElementById('location-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const location = document.getElementById('location').value;
+
+            document.getElementById('loader').style.display = 'block';
+            document.getElementById('weather-table').style.display = 'none';
+
+            getCoordinates(location)
+                .then(coords => {
+                    if (coords) {
+                        document.getElementById("nameo").textContent = coords.display_name;
+                        return getWeather(coords.lat, coords.lon);
+                    } else {
+                        throw new Error('Location not found');
+                    }
+                })
+                .then(() => {
+                    document.getElementById('loader').style.display = 'none';
+                    document.getElementById('weather-table').style.display = 'table';
+                })
+                .catch(() => {
+                    document.getElementById('error-message').textContent = 'Error fetching weather data.';
+                    document.getElementById('loader').style.display = 'none';
+                });
+        });
+    </script>
+</body>
+</html>
