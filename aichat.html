@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat with AI</title>
+  <style>
+    * {
+        border-radius: 5px;
+
+    }
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 50px;
+      margin: 0;
+      height: 100vh;
+      justify-content: center;
+    }
+    #chat-container {
+      width: 80%;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    #messages {
+      border: 1px solid #ccc;
+      padding: 10px;
+      height: 300px;
+      overflow-y: auto;
+      margin-bottom: 10px;
+    }
+    #messages p {
+      margin: 5px 0;
+    }
+    #input-container {
+      display: flex;
+    }
+    #input-container input {
+      flex: 1;
+      padding: 10px;
+      font-size: 16px;
+      border: 1.5px solid;
+    }
+    #input-container button {
+      padding: 10px;
+      font-size: 16px;
+      margin-left: 10px;
+    }
+    .message {
+      margin-bottom: 10px;
+    }
+    .message.system {
+      color: #888;
+    }
+    .message.user {
+      color: #000000;
+      background-color: #e1e1e1;
+      padding: 10px;
+      border-radius: 5px;
+    }
+    .message.assistant {
+      color: #000000;
+    }
+    .buttons {
+      background-color: rgb(215, 215, 215);
+      border-radius: 5px;
+      padding: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      border: none;
+    }
+    #send-button {
+      background-color: rgb(0, 208, 255);
+    }
+    .buttons:hover {
+      background-color: rgb(192, 192, 192);
+    }
+    #send-button:hover {
+      background-color: rgb(0, 181, 222);
+    }
+  </style>
+</head>
+<body>
+  <div id="chat-container">
+    <div id="messages"></div>
+    <div id="input-container">
+      <input type="text" id="input" placeholder="Type your message..." required>
+      <button class="buttons" id="send-button">Send</button>
+      <button class="buttons" id="clear-button">Clear Chat</button>
+      <button class="buttons" id="set-system-prompt-button">Set System Prompt</button>
+    </div>
+  </div>
+
+  <script>
+    const serverUrl = 'https://purple-dream-a721.cosingscratcher.workers.dev/';
+    const messagesContainer = document.getElementById('messages');
+    const inputField = document.getElementById('input');
+    const sendButton = document.getElementById('send-button');
+    const clearButton = document.getElementById('clear-button');
+    const setSystemPromptButton = document.getElementById('set-system-prompt-button');
+
+    let systemPrompt = 'You will answer short, simple and friendly';
+
+    let chatMessages = [
+      { role: 'system', content: systemPrompt }
+    ];
+    
+
+    function addMessage(content, role) {
+      const messageElement = document.createElement('p');
+      messageElement.classList.add('message', role);
+      messageElement.textContent = content;
+      messagesContainer.appendChild(messageElement);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    async function sendMessage(message) {
+      chatMessages.push({ role: 'user', content: message });
+      addMessage(message, 'user');
+
+      const response = await fetch(serverUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ messages: chatMessages })
+      });
+
+      const responseBody = await response.json();
+      const assistantMessage = responseBody.response.response;
+      chatMessages.push({ role: 'assistant', content: assistantMessage });
+      addMessage(assistantMessage, 'assistant');
+    }
+
+    function clearChat() {
+      messagesContainer.innerHTML = '';
+      chatMessages = [{ role: 'system', content: systemPrompt }];
+      addMessage(systemPrompt, 'system');
+    }
+
+    function setSystemPrompt() {
+      const newPrompt = prompt('Enter the new system prompt:');
+      if (newPrompt) {
+        systemPrompt = newPrompt;
+        chatMessages[0] = { role: 'system', content: systemPrompt };
+        addMessage(systemPrompt, 'system');
+      }
+    }
+
+    sendButton.addEventListener('click', async () => {
+      const message = inputField.value;
+      inputField.value = '';
+      await sendMessage(message);
+    });
+
+    inputField.addEventListener('keydown', async (event) => {
+      if (event.key === 'Enter') {
+        const message = inputField.value;
+        inputField.value = '';
+        await sendMessage(message);
+      }
+    });
+
+    clearButton.addEventListener('click', clearChat);
+    setSystemPromptButton.addEventListener('click', setSystemPrompt);
+
+    addMessage(systemPrompt, 'system');
+  </script>
+</body>
+</html>
