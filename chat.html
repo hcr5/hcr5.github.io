@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Comment</title>
+    <style>
+        .bold-name {
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
     <h1>Chat</h1>
@@ -12,10 +17,12 @@
     <label for="msg">Enter your message:</label>
     <input id="msg" type="text">
     <button id="sendbtn">Send</button>
+    <button id="clearbtn">Clear Messages</button>
     <ul id="msglist"></ul>
 </body>
 <script>
 const sendbtn = document.getElementById("sendbtn");
+const clearbtn = document.getElementById("clearbtn");
 const msglist = document.getElementById("msglist");
 let lastmsg = "";
 
@@ -23,7 +30,7 @@ function loadmsgs() {
     const msgs = JSON.parse(localStorage.getItem('msgs')) || [];
     msgs.forEach(msg => {
         const item = document.createElement("li");
-        item.textContent = msg;
+        item.innerHTML = formatMessage(msg);
         msglist.appendChild(item);
     });
 }
@@ -35,7 +42,7 @@ function checkmsgs() {
             const content = JSON.parse(data.contents.contents);
             if (content.message !== lastmsg) {
                 const item = document.createElement("li");
-                item.textContent = content.message;
+                item.innerHTML = formatMessage(content.message);
                 msglist.appendChild(item);
                 lastmsg = content.message;
 
@@ -50,6 +57,7 @@ function checkmsgs() {
 function sendmsg() {
     const name = document.getElementById("name").value;
     let msg = document.getElementById("msg").value;
+    document.getElementById("msg").value = ""
     msg = `${name}: ${msg}`;
 
     const payload = {
@@ -71,7 +79,19 @@ function sendmsg() {
     .catch(error => console.error('Error:', error));
 }
 
+function clearmsgs() {
+    localStorage.removeItem('msgs');
+    msglist.innerHTML = '';
+}
+
+function formatMessage(message) {
+    const [name, ...rest] = message.split(': ');
+    const text = rest.join(': ');
+    return `<span class="bold-name">${name}</span>: ${text}`;
+}
+
 sendbtn.addEventListener("click", sendmsg);
+clearbtn.addEventListener("click", clearmsgs);
 
 loadmsgs();
 setInterval(checkmsgs, 1500);
