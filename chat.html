@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>chat</title>
+</head>
+<body>
+    <h1>chat</h1>
+    <label for="message">enter message:</label>
+    <input id="message" type="text">
+    <button id="send">Send</button>
+    <ul id="list"></ul>
+</body>
+<script>
+const button = document.getElementById("send");
+const list = document.getElementById("list");
+let lastMessage = "";
+
+function update() {
+    fetch("https://www.npoint.io/documents/c90c2bacbe0c014835ad")
+        .then(response => response.json())
+        .then(data => {
+            const contents = JSON.parse(data.contents.contents);
+            if (contents.message !== lastMessage) {
+                const messageItem = document.createElement("li");
+                messageItem.textContent = contents.message;
+                list.appendChild(messageItem);
+                lastMessage = contents.message;
+            }
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+function sendMessage() {
+    const message = document.getElementById("message").value;
+
+    const payload = {
+        contents: JSON.stringify({ message: message })
+    };
+
+    fetch("https://api.npoint.io/c90c2bacbe0c014835ad", {
+        method: 'POST',
+        mode: "no-cors",
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(response => {
+        update();
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+button.addEventListener("click", sendMessage);
+
+setInterval(update, 5000);
+</script>
+</html>
