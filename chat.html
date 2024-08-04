@@ -7,6 +7,8 @@
 </head>
 <body>
     <h1>Chat</h1>
+    <label for="name">Enter your name:</label>
+    <input id="name" type="text"><br><br>
     <label for="msg">Enter your message:</label>
     <input id="msg" type="text">
     <button id="sendbtn">Send</button>
@@ -46,7 +48,9 @@ function checkmsgs() {
 }
 
 function sendmsg() {
-    const msg = document.getElementById("msg").value;
+    const name = document.getElementById("name").value;
+    let msg = document.getElementById("msg").value;
+    msg = `${name}: ${msg}`;
 
     const payload = {
         contents: JSON.stringify({ message: msg })
@@ -60,7 +64,8 @@ function sendmsg() {
         },
         body: JSON.stringify(payload)
     })
-    .then(response => {
+    .then(response => response.json())
+    .then(() => {
         checkmsgs();
     })
     .catch(error => console.error('Error:', error));
