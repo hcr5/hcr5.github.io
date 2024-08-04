@@ -3,40 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>chat</title>
+    <title>Comment</title>
 </head>
 <body>
-    <h1>chat</h1>
-    <label for="message">enter message:</label>
-    <input id="message" type="text">
-    <button id="send">Send</button>
-    <ul id="list"></ul>
+    <h1>Chat</h1>
+    <label for="msg">Enter your message:</label>
+    <input id="msg" type="text">
+    <button id="sendbtn">Send</button>
+    <ul id="msglist"></ul>
 </body>
 <script>
-const button = document.getElementById("send");
-const list = document.getElementById("list");
-let lastMessage = "";
+const sendbtn = document.getElementById("sendbtn");
+const msglist = document.getElementById("msglist");
+let lastmsg = "";
 
-function update() {
+function loadmsgs() {
+    const msgs = JSON.parse(localStorage.getItem('msgs')) || [];
+    msgs.forEach(msg => {
+        const item = document.createElement("li");
+        item.textContent = msg;
+        msglist.appendChild(item);
+    });
+}
+
+function checkmsgs() {
     fetch("https://www.npoint.io/documents/c90c2bacbe0c014835ad")
         .then(response => response.json())
         .then(data => {
-            const contents = JSON.parse(data.contents.contents);
-            if (contents.message !== lastMessage) {
-                const messageItem = document.createElement("li");
-                messageItem.textContent = contents.message;
-                list.appendChild(messageItem);
-                lastMessage = contents.message;
+            const content = JSON.parse(data.contents.contents);
+            if (content.message !== lastmsg) {
+                const item = document.createElement("li");
+                item.textContent = content.message;
+                msglist.appendChild(item);
+                lastmsg = content.message;
+
+                const msgs = JSON.parse(localStorage.getItem('msgs')) || [];
+                msgs.push(content.message);
+                localStorage.setItem('msgs', JSON.stringify(msgs));
             }
         })
         .catch(error => console.error('Error:', error));
 }
 
-function sendMessage() {
-    const message = document.getElementById("message").value;
+function sendmsg() {
+    const msg = document.getElementById("msg").value;
 
     const payload = {
-        contents: JSON.stringify({ message: message })
+        contents: JSON.stringify({ message: msg })
     };
 
     fetch("https://api.npoint.io/c90c2bacbe0c014835ad", {
@@ -48,13 +61,14 @@ function sendMessage() {
         body: JSON.stringify(payload)
     })
     .then(response => {
-        update();
+        checkmsgs();
     })
     .catch(error => console.error('Error:', error));
 }
 
-button.addEventListener("click", sendMessage);
+sendbtn.addEventListener("click", sendmsg);
 
-setInterval(update, 5000);
+loadmsgs();
+setInterval(checkmsgs, 1500);
 </script>
 </html>
