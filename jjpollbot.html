@@ -6,79 +6,94 @@
     <title>Poll Bot</title>
     <style>
         * {
-            border-radius: 7px;
+            border-radius: 3px;
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
         body {
             font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
-            margin: 0;
-            padding: 0;
+            background-color: #ffffff;
+            color: #333333;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
         }
         .container {
-            position: relative;
-            background-color: #ffffff;
+            background-color: #f5f5f5;
             border: 1px solid #cccccc;
             padding: 20px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            width: 300px;
+            width: 350px;
             text-align: center;
         }
         input[type="text"],
         input[type="number"] {
-            text-align: center;
-            width: calc(100% - 22px);
+            width: calc(100% - 20px);
             padding: 10px;
-            margin: 5px 0 15px;
+            margin: 10px 0;
             border: 1px solid #cccccc;
-            box-sizing: border-box;
+            font-size: 16px;
+        }
+        input[type="text"]::placeholder,
+        input[type="number"]::placeholder {
+            color: #888888;
         }
         button {
-            padding: 10px 0;
-            background-color: #5a5a5a;
+            padding: 10px;
+            background-color: #6c757d;
             color: #ffffff;
             border: none;
-            cursor: pointer;
             font-size: 16px;
-            width: calc(100% - 22px);
-            margin: 5px 0 15px;
-            box-sizing: border-box;
+            cursor: pointer;
+            width: calc(100% - 20px);
+            margin: 10px 0;
         }
         button:hover {
-            background-color: #4b4b4b;
+            background-color: #5a6268;
+        }
+        button:disabled {
+            background-color: #adb5bd;
+            cursor: not-allowed;
         }
         .progress-bar-container {
-            margin-top: 15px;
+            margin-top: 10px;
+            position: relative;
             text-align: center;
         }
         .progress-bar {
             background-color: #e0e0e0;
             height: 40px;
-            width: calc(100% - 22px);
-            position: relative;
+            width: calc(100% - 20px);
             margin: 0 auto;
-            box-sizing: border-box;
+            position: relative;
         }
         .progress-bar span {
             background-image: linear-gradient(#32be2d, #269122);
-            width: 0;
-            color: #ffffff;
-            font-size: 14px;
             height: 100%;
+            color: #ffffff;
+            font-size: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            top: 0;
+            left: 0;
             transition: width 0.4s ease;
         }
+        .progress-bar-text {
+            position: absolute;
+            width: 100%;
+            top: 0;
+            left: 0;
+            text-align: center;
+            line-height: 40px;
+            color: #333333;
+            pointer-events: none; /* Ensures the text doesn't interfere with user interactions */
+        }
         h1 {
-            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 24px;
             color: #333333;
         }
     </style>
@@ -88,18 +103,19 @@
         <h1>Poll Bot</h1>
         <div>
             <label for="poll_id">Poll ID:</label>
-            <input type="text" id="poll_id" name="poll_id">
+            <input type="text" id="poll_id" name="poll_id" placeholder="Enter Poll ID">
         </div>
         <div>
             <label for="num_requests">Amount:</label>
-            <input type="number" id="num_requests" name="num_requests" value="1" min="1">
+            <input type="number" id="num_requests" name="num_requests" value="1" min="1" placeholder="1">
         </div>
         <div>
-            <button onclick="start()">Deploy</button>
+            <button id="deployButton" onclick="start()">Deploy</button>
         </div>
         <div class="progress-bar-container">
             <div class="progress-bar">
-                <span id="progress-bar">0%</span>
+                <span id="progress-bar"></span>
+                <div class="progress-bar-text" id="progress-bar-text">0%</div>
             </div>
         </div>
     </div>
@@ -122,9 +138,13 @@
             const size = 20;
             let promises = [];
             const progressBar = document.getElementById('progress-bar');
+            const progressBarText = document.getElementById('progress-bar-text');
+            const deployButton = document.getElementById('deployButton');
+
+            deployButton.disabled = true;
 
             progressBar.style.width = '0%';
-            progressBar.textContent = '0%';
+            progressBarText.textContent = '0%';
 
             for (let i = 0; i < count; i++) {
                 promises.push(request(id));
@@ -136,8 +156,10 @@
 
                 const progress = Math.floor(((i + 1) / count) * 100);
                 progressBar.style.width = `${progress}%`;
-                progressBar.textContent = `${progress}%`;
+                progressBarText.textContent = `${progress}%`;
             }
+
+            deployButton.disabled = false;
         }
     </script>
 </body>
