@@ -89,6 +89,7 @@
         <script>
             let timer;
             let stopRequested = false;
+            let audioContext = new (window.AudioContext || window.webkitAudioContext)(); // Reuse audio context
 
             const aanmoedigingen = [
                 "jullie kunnen het", "ik geloof in je", "nog even!", "denk aan iets leuks!",
@@ -112,7 +113,6 @@
             const win = document.getElementById("win");
 
             function playBeep() {
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 const oscillator = audioContext.createOscillator();
                 oscillator.type = 'sine';
                 oscillator.frequency.setValueAtTime(1500, audioContext.currentTime);
