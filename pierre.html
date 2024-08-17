@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Training Timer</title>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Arial', sans-serif;
+            background-color: #ffffff;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            padding: 20px;
+            background-color: #f0f8ff;
+            border: 3px solid #4682b4;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        p {
+            font-size: 18px;
+            color: #333;
+            margin: 10px 0;
+        }
+
+        input[type="number"] {
+            font-size: 16px;
+            padding: 8px;
+            border: 2px solid #4682b4;
+            transition: transform 0.2s ease;
+        }
+
+        input[type="number"]:focus {
+            transform: scale(1.05) rotate(2deg);
+        }
+
+        button {
+            font-size: 20px;
+            padding: 10px 20px;
+            background-color: #32cd32;
+            color: white;
+            border: 2px solid #228b22;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            animation: shake 0.5s infinite;
+        }
+
+        button:hover {
+            background-color: #228b22;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        h1 {
+            font-size: 48px;
+            color: #ff4500;
+            margin-top: 20px;
+            animation: jitter 1s infinite;
+        }
+
+        hr {
+            border: 2px solid #4682b4;
+            width: 70%;
+            margin: 20px auto;
+        }
+
+        @keyframes shake {
+            0%, 100% {
+                transform: rotate(-2deg);
+            }
+            50% {
+                transform: rotate(2deg);
+            }
+        }
+
+        @keyframes jitter {
+            0% {
+                transform: translateX(-2px);
+            }
+            50% {
+                transform: translateX(2px);
+            }
+            100% {
+                transform: translateX(-2px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <form>
+            <p>Hoeveel seconden trainen?</p>
+            <input type="number" id="train_time">
+            <p>Hoeveel seconden pauze?</p>
+            <input type="number" id="pause_time">
+            <p>Hoevaak?</p>
+            <input type="number" id="wieviel">
+        </form>
+        <hr>
+        <button onclick="daargaanwe()">Start!</button>
+        <h1 id="klok"></h1>
+        <audio hidden id="tik" src="tick.mp3"></audio>
+        <audio hidden id="win" src="win.mp3"></audio>
+        <script>
+            const aanmoedigingen = [
+                "jullie kunnen het",
+                "ik geloof in je",
+                "nog even!",
+                "denk aan iets leuks!",
+                "houd vol!",
+                "je bent bijna daar!",
+                "je doet het geweldig!",
+                "blijf doorgaan!",
+                "je bent sterk!",
+                "je hebt dit!",
+                "je hebt het in je!",
+                "je kunt het aan!",
+                "ik ben trots op je!",
+                "blijf positief!",
+                "je bent bijna bij je doel!",
+                "je hebt al veel bereikt!",
+                "je kunt het voor elkaar krijgen!",
+                "zet door!",
+                "je bent een winnaar!",
+                "je bent op de goede weg!",
+                "houd je focus!",
+                "je doet je best!",
+                "je kunt dit aan!",
+                "ik sta achter je!",
+                "je bent fantastisch!",
+                "je verdient dit!",
+                "je kunt meer dan je denkt!",
+                "je hebt de kracht!",
+                "je maakt vooruitgang!",
+                "je bent een doorzetter!",
+                "je hebt dit onder controle!",
+                "je bent onvermoeibaar!",
+                "je bent een inspiratie!",
+                "je doet het prima!",
+                "je hebt een geweldige houding!",
+                "je bent op de goede weg!",
+                "je gaat het halen!",
+                "je bent een topper!",
+                "je hebt alles wat je nodig hebt!",
+                "je bent echt geweldig!",
+                "je blijft indrukwekkend!",
+                "je bent bijna bij het eind!",
+                "je kunt het!",
+                "ik geloof in je talent!",
+                "je bent een toffe gozer!",
+              "smook veep",
+              "poep konsump"
+              "wie geht es?",
+              "konzumtione von puup",
+              "wo is der toilette",
+              "puup",
+              "fart",
+              "fartje",
+              "eepking",
+              "deze website is mede mogelijk gemaakt door aftrotek ink"
+            ];
+
+            function sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+
+            const geluid = document.getElementById("tik");
+            geluid.volume = 0.5;
+
+            const win = document.getElementById("win");
+
+            function playBeep() {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(1500, audioContext.currentTime);
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+
+                oscillator.start();
+                setTimeout(() => oscillator.stop(), 100);
+            }
+
+            async function playAanmoediging() {
+                const randomIndex = Math.floor(Math.random() * aanmoedigingen.length);
+                const aanmoediging = aanmoedigingen[randomIndex];
+                const response = await fetch(`https://synthesis-service.scratch.mit.edu/synth?locale=nl-NL&gender=male&text=${encodeURIComponent(aanmoediging)}`);
+                const audioBlob = await response.blob();
+                const audioUrl = URL.createObjectURL(audioBlob);
+                const audio = new Audio(audioUrl);
+                audio.play();
+            }
+
+            async function check(number) {
+                if (number <= 3) {
+                    playBeep();
+                }
+            }
+
+            async function daargaanwe() {
+                const klok = document.getElementById("klok");
+                const trainTime = parseInt(document.getElementById("train_time").value);
+                const pauseTime = parseInt(document.getElementById("pause_time").value);
+                const repetitions = parseInt(document.getElementById("wieviel").value);
+
+                for (let j = repetitions; j >= 1; j--) {
+                    for (let i = pauseTime; i >= 1; i--) {
+                        klok.textContent = i;
+                        check(i);
+                        await sleep(1000);
+                    }
+                    await sleep(1000);
+                    for (let i = trainTime; i >= 1; i--) {
+                        klok.textContent = i;
+                        check(i);
+                        if (Math.random() < 1 / 4) {
+                            playAanmoediging();
+                        }
+                        await sleep(1000);
+                    }
+                }
+                klok.textContent = "KLAAR! 👺";
+                win.play();
+            }
+        </script>
+    </div>
+</body>
+</html>
