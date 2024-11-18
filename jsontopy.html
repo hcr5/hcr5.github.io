@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>json to python</title>
+    <style>
+        body {
+            font-family: arial, sans-serif;
+            margin: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .out {
+            margin-top: 10px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            background-color: #f4f4f4;
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <h1>json to python</h1>
+    <textarea id="in" placeholder="paste json here..."></textarea>
+    <button onclick="to_py()">convert</button>
+    <button onclick="copy_out()">copy</button>
+    <div class="out" id="out"></div>
+
+    <script>
+        function to_py() {
+            const t = document.getElementById('in').value;
+            const j = JSON.parse(t);
+            const p = JSON.stringify(j)
+                .replace(/true/g, "True")
+                .replace(/false/g, "False")
+                .replace(/null/g, "None");
+            document.getElementById('out').textContent = p;
+        }
+        function copy_out() {
+            const o = document.getElementById('out');
+            navigator.clipboard.writeText(o.textContent);
+        }
+    </script>
+</body>
+</html>
