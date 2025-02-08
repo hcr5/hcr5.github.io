@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Followers Scraper</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 0;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px;
+            border: 1px solid #ccc;
+            background-color: #e0e0e0;
+            color: #333;
+            border-radius: 0;
+            cursor: pointer;
+            margin-top: 5px;
+            display: inline-block;
+        }
+        #scrapeButton {
+            width: 100%;
+        }
+        button:hover {
+            background-color: #d0d0d0;
+        }
+        #progressContainer {
+            width: 100%;
+            background-color: #f3f3f3;
+            border: 1px solid #ddd;
+            margin-top: 10px;
+        }
+        #progressBar {
+            height: 20px;
+            width: 0;
+            background-color: #4caf50;
+            text-align: center;
+            color: white;
+            transition: width 0.5s ease-out;
+        }
+        #outputContainer {
+            margin-top: 10px;
+            border: 1px solid #ddd;
+            padding: 10px;
+            height: 200px;
+            overflow-y: auto;
+            background-color: #f9f9f9;
+            position: relative;
+        }
+        #spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid #3498db;
+            width: 30px;
+            height: 30px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: spin 1s linear infinite;
+            display: none; /* Hide spinner by default */
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        #totalFollowers {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        .button-group {
+            margin-top: 10px;
+        }
+        .button-group button {
+            width: calc(33.33% - 4px);
+            display: inline-block;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <input type="text" id="username" placeholder="Enter username">
+    <input type="number" id="batchSize" placeholder="Batch size (number of pages)" value="50">
+    <button id="scrapeButton">Scrape Followers</button>
+    <div id="progressContainer">
+        <div id="progressBar">0%</div>
+    </div>
+    <div id="totalFollowers">Total Followers: 0</div>
+    <div id="outputContainer">
+        <div id="spinner"></div>
+        <pre id="output"></pre>
+    </div>
+    <div class="button-group">
+        <button id="copyButton">Copy Followers List</button>
+        <button id="copyPythonListButton">Copy as Python List</button>
+        <button id="copyCSVButton">Copy as CSV</button>
+    </div>
+    <script>
+        $(document).ready(function() {
+            $('#scrapeButton').click(function() {
+                const username = $('#username').val();
+                const batchSize = parseInt($('#batchSize').val(), 10);
+                if (!username) {
+                    alert('Please enter a username');
+                    return;
+                }
+                $('#output').text('');
+                $('#totalFollowers').text('Total Followers: 0');
+                $('#spinner').show(); // Show spinner
+                
+                const getNumPages = (username) => {
+                    return $.get(`https://scratch.mit.edu/users/${username}/followers/`).then(response => {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(response, 'text/html');
+                        return $(doc).find('.page-current').length;
+                    });
+                };
+
+                const getFollowers = (pageNumber, username) => {
+                    return $.get(`https://scratch.mit.edu/users/${username}/followers/?page=${pageNumber}`).then(response => {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(response, 'text/html');
+                        const usernames = $(doc).find('span.title > a').map((i, el) => $(el).text().trim()).get();
+                        return usernames;
+                    });
+                };
+
+                const updateProgressBar = (currentPage, totalPages) => {
+                    let percentage = Math.round((currentPage / totalPages) * 100);
+                    if (percentage > 100) percentage = 100; // Clamp to 100%
+                    $('#progressBar').css('width', `${percentage}%`).text(`${percentage}%`);
+                };
+
+                const fetchInBatches = (pages, batchSize, username) => {
+                    const allUsernames = [];
+                    let start = 0;
+
+                    const fetchBatch = (batchStart) => {
+                        const batchEnd = Math.min(batchStart + batchSize, pages);
+                        const batchRequests = [];
+                        for (let i = batchStart; i < batchEnd; i++) {
+                            batchRequests.push(getFollowers(i + 1, username));
+                        }
+                        return Promise.all(batchRequests).then(batchResults => {
+                            return batchResults.flat();
+                        });
+                    };
+
+                    const fetchAllBatches = () => {
+                        if (start < pages) {
+                            return fetchBatch(start).then(batchResults => {
+                                allUsernames.push(...batchResults);
+                                start += batchSize;
+                                updateProgressBar(start, pages);
+                                return fetchAllBatches();
+                            });
+                        } else {
+                            return Promise.resolve();
+                        }
+                    };
+
+                    return fetchAllBatches().then(() => allUsernames);
+                };
+
+                getNumPages(username).then(numPages => {
+                    fetchInBatches(numPages, batchSize, username).then(allUsernames => {
+                        const followerCount = allUsernames.length;
+                        $('#totalFollowers').text(`Total Followers: ${followerCount}`);
+                        const outputText = allUsernames.join('\n');
+                        $('#output').text(outputText);
+                        $('#spinner').hide(); // Hide spinner when done
+                    }).catch(err => {
+                        console.error('Error fetching followers:', err);
+                        $('#output').text('Error fetching followers.');
+                        $('#spinner').hide(); // Hide spinner on error
+                    });
+                }).catch(err => {
+                    console.error('Error getting number of pages:', err);
+                    $('#output').text('Error getting number of pages.');
+                    $('#spinner').hide(); // Hide spinner on error
+                });
+            });
+
+            $('#copyButton').click(function() {
+                const text = $('#output').text();
+                if (text) {
+                    navigator.clipboard.writeText(text).then(() => {
+                        alert('Followers list copied to clipboard!');
+                    }).catch(err => {
+                        console.error('Error copying to clipboard:', err);
+                        alert('Failed to copy followers list.');
+                    });
+                } else {
+                    alert('No followers list to copy.');
+                }
+            });
+
+            $('#copyPythonListButton').click(function() {
+                const text = $('#output').text().split('\n');
+                if (text.length > 1) {
+                    const pythonList = JSON.stringify(text, null, 2);
+                    navigator.clipboard.writeText(pythonList).then(() => {
+                        alert('Followers list copied as Python list to clipboard!');
+                    }).catch(err => {
+                        console.error('Error copying to clipboard:', err);
+                        alert('Failed to copy Python list.');
+                    });
+                } else {
+                    alert('No followers list to copy.');
+                }
+            });
+
+            $('#copyCSVButton').click(function() {
+                const text = $('#output').text().split('\n');
+                if (text.length > 1) {
+                    const csvList = text.join(', ');
+                    navigator.clipboard.writeText(csvList).then(() => {
+                        alert('Followers list copied as CSV to clipboard!');
+                    }).catch(err => {
+                        console.error('Error copying to clipboard:', err);
+                        alert('Failed to copy CSV.');
+                    });
+                } else {
+                    alert('No followers list to copy.');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
